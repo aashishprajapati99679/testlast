@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --background: #f0f4f8;
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --card-radius: 24px;
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --hover-transform: scale(1.02);
+}
+
+@layer base {
+    body {
+        @apply text-slate-800 font-sans antialiased;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-heading font-semibold text-slate-900 tracking-tight;
+    }
+}
+
+@layer components {
+    /* Glassmorphism Card */
+    .card {
+        @apply relative overflow-hidden transition-all duration-300 ease-out;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--card-radius);
+        box-shadow: var(--glass-shadow);
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Neumorphic/Modern Button */
+    .btn {
+        @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        @apply text-white shadow-lg shadow-indigo-500/30 border border-transparent;
+    }
+
+    .btn-primary:hover {
+        @apply shadow-xl shadow-indigo-500/40;
+        transform: var(--hover-transform);
+    }
+
+    .btn-secondary {
+        @apply bg-white/50 text-slate-700 border border-white/60 backdrop-blur-sm hover:bg-white/80;
+    }
+
+    .btn-secondary:hover {
+        transform: var(--hover-transform);
+        @apply shadow-md;
+    }
+
+    /* Inputs */
+    .input-field {
+        @apply w-full px-5 py-3 rounded-xl border border-white/50 bg-white/50 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none backdrop-blur-sm;
+    }
+
+    /* Badges */
+    .badge {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur-md;
+    }
+
+    .badge-primary {
+        @apply bg-indigo-50/80 text-indigo-700 border border-indigo-100;
+    }
+
+    .badge-success {
+        @apply bg-emerald-50/80 text-emerald-700 border border-emerald-100;
+    }
+
+    .badge-warning {
+        @apply bg-amber-50/80 text-amber-700 border border-amber-100;
+    }
+    
+    .badge-neutral {
+        @apply bg-slate-100/80 text-slate-600 border border-slate-200;
+    }
+
+    /* Sidebar Glass Effect */
+    .glass-sidebar {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .glass-sidebar-dark {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}
