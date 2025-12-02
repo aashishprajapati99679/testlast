@@ -287,6 +287,8 @@ exports.issueCertificate = async (req, res) => {
             return res.status(404).json({ message: 'Student not found' });
         }
 
+        const ngo = await User.findById(req.user.id);
+
         // Calculate total approved hours
         const logs = await HourLog.find({
             student: studentId,
@@ -301,7 +303,20 @@ exports.issueCertificate = async (req, res) => {
         }
 
         // Generate Certificate
-        const doc = generateCertificate(null, student.name, opportunity.title, date, totalHours);
+        // Params: (res, studentName, courseName, dateText, location, organizationName, issueDate)
+
+        let dateText = `${totalHours} Hours`;
+        if (opportunity.startDate && opportunity.endDate) {
+            const start = new Date(opportunity.startDate).toLocaleDateString();
+            const end = new Date(opportunity.endDate).toLocaleDateString();
+            dateText = `${start} - ${end} (${totalHours} Hours)`;
+        }
+
+        const issueDate = new Date().toLocaleDateString();
+        const location = opportunity.location || 'Remote';
+        const organizationName = ngo.name || 'GETSERVE.in';
+
+        const doc = generateCertificate(null, student.name, opportunity.title, dateText, location, organizationName, issueDate);
 
         const buffers = [];
         doc.on('data', buffers.push.bind(buffers));

@@ -53,7 +53,10 @@ exports.getMyCertifications = async (req, res) => {
     try {
         const myCertifications = await UserCertification.find({ student: req.user.id })
             .populate('certification')
-            .populate('opportunity')
+            .populate({
+                path: 'opportunity',
+                populate: { path: 'organization', select: 'name' }
+            })
             .sort({ appliedAt: -1 });
 
         res.status(200).json({
@@ -249,7 +252,8 @@ exports.verifyPayment = async (req, res) => {
             // Generate and send certificate email
             try {
                 // Generate PDF
-                const doc = generateCertificate(null, user.name, certification.title, new Date(), 'Self-Paced');
+                // Params: (res, studentName, courseName, dateText, location, organizationName, issueDate)
+                const doc = generateCertificate(null, user.name, certification.title, 'Self-Paced', 'Online', certification.provider || 'GETSERVE.in', new Date().toLocaleDateString());
                 const buffers = [];
                 doc.on('data', buffers.push.bind(buffers));
                 doc.on('end', async () => {
@@ -306,7 +310,12 @@ exports.downloadCertificate = async (req, res) => {
                 { opportunity: userCertId }
             ],
             status: 'completed'
-        }).populate('student').populate('certification').populate('opportunity');
+        }).populate('student')
+            .populate('certification')
+            .populate({
+                path: 'opportunity',
+                populate: { path: 'organization' }
+            });
 
         if (!userCert) {
             return res.status(404).json({ message: 'Certificate not found or not completed' });
@@ -327,14 +336,32 @@ exports.downloadCertificate = async (req, res) => {
         // Generate new certificate
         const studentName = userCert.student.name;
         const title = userCert.certification ? userCert.certification.title : userCert.opportunity.title;
-        const date = new Date(userCert.completedAt || userCert.appliedAt).toLocaleDateString();
-        const duration = userCert.opportunity ? `${userCert.opportunity.duration} Hours` : null; // Assuming duration is stored or calculated
+
+        let dateText = 'Self-Paced';
+        let location = 'Online';
+        let organizationName = 'GETSERVE.in';
+
+        if (userCert.opportunity) {
+            const op = userCert.opportunity;
+            dateText = `${op.duration} Hours`;
+            if (op.startDate && op.endDate) {
+                const start = new Date(op.startDate).toLocaleDateString();
+                const end = new Date(op.endDate).toLocaleDateString();
+                dateText = `${start} - ${end} (${op.duration} Hours)`;
+            }
+            location = op.location || 'Remote';
+            organizationName = op.organization?.name || 'GETSERVE.in';
+        } else if (userCert.certification) {
+            organizationName = userCert.certification.provider || 'GETSERVE.in';
+        }
+
+        const issueDate = new Date(userCert.completedAt || userCert.appliedAt).toLocaleDateString();
 
         const fileName = `cert-${userCert._id}.pdf`;
         const relativePath = path.join('certificates', fileName);
         const absolutePath = path.join(__dirname, '..', 'certificates', fileName);
 
-        const doc = generateCertificate(null, studentName, title, date, duration);
+        const doc = generateCertificate(null, studentName, title, dateText, location, organizationName, issueDate);
         const writeStream = fs.createWriteStream(absolutePath);
 
         doc.pipe(writeStream);
